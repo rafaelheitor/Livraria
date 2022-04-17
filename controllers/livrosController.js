@@ -1,5 +1,6 @@
 const { sequelize, Livro } = require('../models')
 const errosAsync = require('../middlewares/errosAsync')
+const ManipuladorDeErros = require('../utils/manipuladorDeErros')
 
 const livrosController = {
     todosOsLivros: errosAsync(async (req, res) => {
@@ -9,14 +10,11 @@ const livrosController = {
             listaDeLivros: listaDeLivros
         })
     }),
-    encontrarUmLivro: async (req, res) => {
+    encontrarUmLivro: async (req, res, next) => {
         let { id } = req.params
         const livro = await Livro.findByPk(id)
         if (!livro) {
-            return res.status(404).json({
-                success: false,
-                message: 'Livro não encontrado'
-            })
+            return next(new ManipuladorDeErros('Nenhum Livro encontrado com esse id', 404))
         }
         return res.status(200).json({
             success: true,
@@ -43,13 +41,11 @@ const livrosController = {
         })
 
     }),
-    deletarUmLivro: errosAsync(async (req, res) => {
+    deletarUmLivro: errosAsync(async (req, res, next) => {
         let { id } = req.params
         const deletarLivro = await Livro.destroy({ where: { id: id } })
         if (!deletarLivro) {
-            res.status(404).json({
-                message: 'Livro não encontrado'
-            })
+          return next(new ManipuladorDeErros('Nenhum Livro encontrado com esse id', 404))
         }
         return res.status(200).json({
             success: true,
