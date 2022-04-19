@@ -10,7 +10,7 @@ const livrosController = {
             listaDeLivros: listaDeLivros
         })
     }),
-    encontrarUmLivro: async (req, res, next) => {
+    encontrarUmLivro: errosAsync(async (req, res, next) => {
         let { id } = req.params
         const livro = await Livro.findByPk(id)
         if (!livro) {
@@ -20,12 +20,15 @@ const livrosController = {
             success: true,
             livro: livro
         })
-    },
+    }),
     editarUmLivro: errosAsync(async (req, res, next) => {
         let { id } = req.params
         let livro = req.body
         const atualizaLivro = await Livro.update(livro, { where: { id: id } })
         const livroAtualizado = await Livro.findByPk(id)
+        if(!livroAtualizado){
+            return next(new ManipuladorDeErros('Nenhum livro encontrado com esse id', 404))
+        }
         return res.status(200).json({
             success: true,
             livro: livroAtualizado
